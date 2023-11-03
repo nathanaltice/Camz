@@ -3,7 +3,7 @@
 // Example demonstrating cameras that use geometry masks
 
 // take it easy, buddy
-'use strict';
+'use strict'
 
 let config = {
     type: Phaser.AUTO,
@@ -19,11 +19,11 @@ let config = {
     scene: [ Camz ]
 }
 
-const game = new Phaser.Game(config);
+const game = new Phaser.Game(config)
 
-let { width, height } = game.config;
-let centerX = width / 2;
-let centerY = height / 2;
+let { width, height } = game.config
+let centerX = width / 2
+let centerY = height / 2
 
-let cursors;
-let keyW, keyA, keyS, keyD;
+let cursors
+let keyW, keyA, keyS, keyD
