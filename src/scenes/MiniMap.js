@@ -1,7 +1,7 @@
-class Camz extends Phaser.Scene {
+class MiniMap extends Phaser.Scene {
 
     constructor() {
-        super({ key: 'camzScene' })
+        super({ key: 'miniMapScene' })
     }
 
     preload() {
@@ -14,50 +14,47 @@ class Camz extends Phaser.Scene {
     }
 
     create() {
-        this.add.image(0, 0, 'gradientbg').setOrigin(0)
+        this.bg = this.add.image(0, 0, 'gradientbg').setOrigin(0)
 
-        // setup graphics to define camera masks
-        // circle first...
-        const graphicsA = this.make.graphics()
-        graphicsA.fillStyle(0xFFFFFF)
-        graphicsA.fillCircle(100, 100, 100)
-        const circleMask = graphicsA.createGeometryMask()
-        // ...then the triangle
-        const graphicsB = this.make.graphics()
-        graphicsB.clear()
-        graphicsB.fillStyle(0xFFFFFF)
-        graphicsB.fillTriangle(0, height, width, 0, width, height)
-        const triMask = graphicsB.createGeometryMask()
-
-        // set up player objects
+        // create player objects
         this.VEHICLE_VEL = 600
         this.car = this.physics.add.sprite(1500, 1500, 'car')
-        this.copter = this.physics.add.sprite(500, 500, 'copter')
+        this.car.body.setCollideWorldBounds(true)
 
+        this.copter = this.physics.add.sprite(500, 500, 'copter')
+        this.copter.body.setCollideWorldBounds(true)
+
+        // create object markers
         this.cross = this.add.image(this.car.x, this.car.y, 'cross').setScale(5)
         this.square = this.add.image(this.copter.x, this.copter.y, 'square').setScale(5)
 
         // set up cameras
-        this.cameras.main.setBounds(0, 0, 3000, 3000)
-        this.cameras.main.startFollow(this.copter, false, 0.4, 0.4, -100)
+        this.cameras.main.setBounds(0, 0, 3000, 3000).setZoom(0.75)
+        this.cameras.main.startFollow(this.copter, false, 0.4, 0.4)
         this.cameras.main.ignore([this.cross, this.square])
 
-        this.sliceCamera = this.cameras.add(0, 0, width, height).setBounds(0, 0, 3000, 3000).setZoom(0.5)
-        this.sliceCamera.startFollow(this.car, false, 0.4, 0.4, 200)
-        this.sliceCamera.setMask(triMask)
-        this.sliceCamera.ignore([this.cross, this.square])
+        this.miniMapCamera = this.cameras.add(32, 32, width / 5, height / 5).setBounds(0, 0, 3000, 3000).setZoom(0.1)
+        this.miniMapCamera.setBackgroundColor(0x000)
+        this.miniMapCamera.startFollow(this.copter, false, 0.4, 0.4)
+        this.miniMapCamera.ignore([this.car, this.copter, this.bg])
 
-        this.miniMapCamera = this.cameras.add(0, 0, 200, 200).setBounds(0, 0, 3000, 3000).setZoom(0.1)
-        this.miniMapCamera.startFollow(this.car, false, 0.4, 0.4)
-        this.miniMapCamera.setMask(circleMask)
-        this.miniMapCamera.ignore([this.car, this.copter])
+        // set physics world bounds (so collideWorldBounds works properly)
+        this.physics.world.bounds.setTo(0, 0, 3000, 3000)
 
-        // set up input
+        // set up keyboard input
         cursors = this.input.keyboard.createCursorKeys()
         keyW = this.input.keyboard.addKey('W')
         keyA = this.input.keyboard.addKey('A')
         keyS = this.input.keyboard.addKey('S')
         keyD = this.input.keyboard.addKey('D')
+
+        // mouse-based scene switcher
+        this.input.on('pointerdown', function() {
+            this.scene.start('maskCamScene')
+        }, this) 
+
+        // used to check whether object is in view
+        this.findableObjects = [ this.car ]
     }
 
     update() {
@@ -96,5 +93,12 @@ class Camz extends Phaser.Scene {
         this.copterDirection.normalize()
         this.copter.setVelocity(this.VEHICLE_VEL * this.copterDirection.x, this.VEHICLE_VEL * this.copterDirection.y)
         this.square.setPosition(this.copter.x, this.copter.y)
+
+        // check whether findable object is in view
+        // (currently not wired to any logic, just proof of concept)
+        let objectInView = this.cameras.main.cull(this.findableObjects)
+        if (objectInView.length > 0) {
+            console.log('in view')
+        }
     }
 }

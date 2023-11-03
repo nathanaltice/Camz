@@ -6,6 +6,7 @@
 'use strict'
 
 let config = {
+    parent: "phaser-game",
     type: Phaser.AUTO,
     width: 800,
     height: 600,
@@ -13,10 +14,10 @@ let config = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true
+            //debug: true
         }
     },
-    scene: [ Camz ]
+    scene: [ MiniMap, MaskCam ]
 }
 
 const game = new Phaser.Game(config)
@@ -26,4 +27,4 @@ let centerX = width / 2
 let centerY = height / 2
 
 let cursors
-let keyW, keyA, keyS, keyD
+let keyW, keyA, keyS, keyD, keyC
