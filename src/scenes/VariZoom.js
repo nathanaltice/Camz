@@ -1,56 +1,42 @@
-class MaskCam extends Phaser.Scene {
+class VariZoom extends Phaser.Scene {
 
     constructor() {
-        super({ key: 'maskCamScene' })
+        super({ key: 'variZoomScene' })
     }
 
     preload() {
         this.load.path = 'assets/'
         this.load.image('car', 'car.png')
         this.load.image('copter', 'copter.png')
-        this.load.image('cross', 'whitecross.png')
-        this.load.image('square', 'square.png')
         this.load.image('gradientbg', 'gradientbg.png')
     }
 
     create() {
-        this.add.image(0, 0, 'gradientbg').setOrigin(0)
+        this.bg = this.add.image(0, 0, 'gradientbg').setOrigin(0)
 
-        // setup graphics to define camera masks
-        // make the circle first...
-        const graphicsA = this.make.graphics()
-        graphicsA.fillStyle(0xFFFFFF)
-        graphicsA.fillCircle(100, 100, 100)
-        const circleMask = graphicsA.createGeometryMask()
-        // ...then the triangle
-        const graphicsB = this.make.graphics()
-        graphicsB.clear()
-        graphicsB.fillStyle(0xFFFFFF)
-        graphicsB.fillTriangle(0, height, width, 0, width, height)
-        const triMask = graphicsB.createGeometryMask()
-
-        // set up player objects
         this.VEHICLE_VEL = 600
-        this.car = this.physics.add.sprite(1500, 1500, 'car')
-        this.copter = this.physics.add.sprite(500, 500, 'copter')
+        this.ZOOM_DURATION = 250
+        this.MAX_ZOOM = 1.0
+        this.MIN_ZOOM = 0.2675
 
-        this.cross = this.add.image(this.car.x, this.car.y, 'cross').setScale(5)
-        this.square = this.add.image(this.copter.x, this.copter.y, 'square').setScale(5)
+        // create player objects
+        this.car = this.physics.add.sprite(this.bg.width / 2, this.bg.height / 2, 'car')
+        this.car.body.setCollideWorldBounds(true)
+
+        this.copter = this.physics.add.sprite(this.bg.width / 2, this.bg.height / 2, 'copter')
+        this.copter.body.setCollideWorldBounds(true)
 
         // set up cameras
         this.cameras.main.setBounds(0, 0, 3000, 3000)
-        this.cameras.main.startFollow(this.copter, false, 0.4, 0.4, -100)
-        this.cameras.main.ignore([this.cross, this.square])
 
-        this.sliceCamera = this.cameras.add(0, 0, width, height).setBounds(0, 0, 3000, 3000).setZoom(0.5)
-        this.sliceCamera.startFollow(this.car, false, 0.4, 0.4, 200)
-        this.sliceCamera.setMask(triMask)
-        this.sliceCamera.ignore([this.cross, this.square])
+        // created "center object" btwn two vehicles (for camera to follow)
+        this.centerObject = new CameraCenter(this, [this.car, this.copter])
 
-        this.miniMapCamera = this.cameras.add(0, 0, 200, 200).setBounds(0, 0, 3000, 3000).setZoom(0.1)
-        this.miniMapCamera.startFollow(this.car, false, 0.4, 0.4)
-        this.miniMapCamera.setMask(circleMask)
-        this.miniMapCamera.ignore([this.car, this.copter])
+        // set physics world bounds (so collideWorldBounds works properly)
+        this.physics.world.bounds.setTo(0, 0, 3000, 3000)
+
+        // graphics object to draw line
+        this.graphics = this.add.graphics({ lineStyle: { width: 2, color: 0xfacade }, fillStyle: { color: 0xfacade } })
 
         // set up keyboard input
         cursors = this.input.keyboard.createCursorKeys()
@@ -61,7 +47,7 @@ class MaskCam extends Phaser.Scene {
 
         // mouse-based scene switcher
         this.input.on('pointerdown', function() {
-            this.scene.start('variZoomScene')
+            this.scene.start('miniMapScene')
         }, this) 
     }
 
@@ -82,7 +68,6 @@ class MaskCam extends Phaser.Scene {
         }
         this.carDirection.normalize()
         this.car.setVelocity(this.VEHICLE_VEL * this.carDirection.x, this.VEHICLE_VEL * this.carDirection.y)
-        this.cross.setPosition(this.car.x, this.car.y)
 
         // copter movement
         this.copterDirection = new Phaser.Math.Vector2()
@@ -100,6 +85,23 @@ class MaskCam extends Phaser.Scene {
         }
         this.copterDirection.normalize()
         this.copter.setVelocity(this.VEHICLE_VEL * this.copterDirection.x, this.VEHICLE_VEL * this.copterDirection.y)
-        this.square.setPosition(this.copter.x, this.copter.y)
+
+        // calculate camera zoom based on distance between vehicles
+        let distanceBtwnObjs = Phaser.Math.Distance.BetweenPoints(this.copter, this.car)
+        let maxDistance = Math.sqrt(Math.pow(this.bg.width, 2) + Math.pow(this.bg.height, 2))        
+
+        let interpZoom = range(maxDistance / 2, 0, this.MIN_ZOOM, this.MAX_ZOOM, distanceBtwnObjs)
+
+        this.cameras.main.setZoom(interpZoom)
+
+        // draw debug line between vehicles
+        this.graphics.clear()
+        this.graphics.lineBetween(this.car.x, this.car.y, this.copter.x, this.copter.y)
     }
 }
+
+// source: https://www.trysmudford.com/blog/linear-interpolation-functions/
+const lerp = (x, y, a) => x * (1 - a) + y * a
+const clamp = (a, min = 0, max = 1) => Math.min(max, Math.max(min, a))
+const invlerp = (x, y, a) => clamp((a - x) / (y - x))
+const range = (x1, y1, x2, y2, a) => lerp(x2, y2, invlerp(x1, y1, a))

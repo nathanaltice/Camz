@@ -1,6 +1,7 @@
 // Nathan Altice
 // Created: 5/4/23
-// Example demonstrating cameras that use geometry masks
+// Updated: 11/5/23
+// Example demonstrating various camera features/techniques, including variable zoom, minimap, and camera masks
 
 // take it easy, buddy
 'use strict'
@@ -9,7 +10,7 @@ let config = {
     parent: "phaser-game",
     type: Phaser.AUTO,
     width: 800,
-    height: 600,
+    height: 800,
     backgroundColor: '#FFDD12',
     physics: {
         default: 'arcade',
@@ -17,7 +18,7 @@ let config = {
             //debug: true
         }
     },
-    scene: [ MiniMap, MaskCam ]
+    scene: [ VariZoom, MiniMap, MaskCam ]
 }
 
 const game = new Phaser.Game(config)
