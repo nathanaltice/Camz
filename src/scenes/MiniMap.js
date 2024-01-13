@@ -4,6 +4,10 @@ class MiniMap extends Phaser.Scene {
         super({ key: 'miniMapScene' })
     }
 
+    init() {
+        this.VEHICLE_VEL = 600
+    }
+
     preload() {
         this.load.path = 'assets/'
         this.load.image('car', 'car.png')
@@ -14,10 +18,10 @@ class MiniMap extends Phaser.Scene {
     }
 
     create() {
+        // add background
         this.bg = this.add.image(0, 0, 'gradientbg').setOrigin(0)
 
         // create player objects
-        this.VEHICLE_VEL = 600
         this.car = this.physics.add.sprite(1500, 1500, 'car')
         this.car.body.setCollideWorldBounds(true)
 

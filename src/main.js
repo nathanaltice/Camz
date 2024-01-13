@@ -1,6 +1,6 @@
 // Nathan Altice
 // Created: 5/4/23
-// Updated: 11/5/23
+// Updated: 1/13/23
 // Example demonstrating various camera features/techniques, including variable zoom, minimap, and camera masks
 
 // take it easy, buddy

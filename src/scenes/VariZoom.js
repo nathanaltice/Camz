@@ -4,6 +4,13 @@ class VariZoom extends Phaser.Scene {
         super({ key: 'variZoomScene' })
     }
 
+    init() {
+        this.VEHICLE_VEL = 600
+        this.ZOOM_DURATION = 250
+        this.MAX_ZOOM = 1.0
+        this.MIN_ZOOM = 0.2675
+    }
+
     preload() {
         this.load.path = 'assets/'
         this.load.image('car', 'car.png')
@@ -12,12 +19,8 @@ class VariZoom extends Phaser.Scene {
     }
 
     create() {
+        // add background
         this.bg = this.add.image(0, 0, 'gradientbg').setOrigin(0)
-
-        this.VEHICLE_VEL = 600
-        this.ZOOM_DURATION = 250
-        this.MAX_ZOOM = 1.0
-        this.MIN_ZOOM = 0.2675
 
         // create player objects
         this.car = this.physics.add.sprite(this.bg.width / 2, this.bg.height / 2, 'car')

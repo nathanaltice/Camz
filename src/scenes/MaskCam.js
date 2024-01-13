@@ -14,6 +14,7 @@ class MaskCam extends Phaser.Scene {
     }
 
     create() {
+        // add background
         this.add.image(0, 0, 'gradientbg').setOrigin(0)
 
         // setup graphics to define camera masks
